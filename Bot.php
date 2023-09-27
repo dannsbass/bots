@@ -610,7 +610,7 @@ class Bot
         }
 
         if ($httpcode == 401) {
-            throw new Exception('Incorect bot token');
+            throw new Exception('Incorrect bot token');
             return false;
         } else {
             return $result;
