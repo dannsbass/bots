@@ -823,6 +823,7 @@ class Bot
             'sendVenue' => 'venue',
             'sendChatAction' => 'action',
             'setWebhook' => 'url',
+            'deleteWebhook' => 'drop_pending_updates',
             'getUserProfilePhotos' => 'user_id',
             'getFile' => 'file_id',
             'getChat' => 'chat_id',
@@ -832,19 +833,22 @@ class Bot
             'sendGame' => 'game_short_name',
             'getGameHighScores' => 'user_id',
             'editMessageText' => 'text',
-            'editMessageReplyMarkup' => 'message_id',
-            'editMessageCaption' => 'message_id',
+            'editMessageReplyMarkup' => 'reply_markup',
+            'editMessageCaption' => 'caption',
             'editMessageMedia' => 'media',
             'deleteMessage' => 'message_id',
         ];
-        if (!isset($firstParam[$action])) {
-            if (isset($args[0]) && is_array($args[0])) {
+        if (isset($args[0])) {
+            if (is_array($args[0])){
                 $param = $args[0];
-            }
-        } else {
-            $param[$firstParam[$action]] = $args[0];
-            if (isset($args[1]) && is_array($args[1])) {
-                $param = array_merge($param, $args[1]);
+                if (isset($args[1]) && is_array($args[1])) {
+                    $param = array_merge($param, $args[1]);
+                }
+            } else {
+                $param[$firstParam[$action]] = $args[0];
+                if (isset($args[1]) && is_array($args[1])) {
+                    $param = array_merge($param, $args[1]);
+                }
             }
         }
         return call_user_func_array(__CLASS__ . '::send', [$action, $param]);
