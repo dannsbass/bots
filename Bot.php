@@ -514,10 +514,18 @@ class Bot
 
         $needMediaId = ['editMessageMedia'];
 
+        $needCallbackQueryId = ['answerCallbackQuery'];
+
         if (isset(self::$getUpdates['callback_query'])) {
             self::$getUpdates = self::$getUpdates['callback_query'];
         }
 
+        // automate callback query id
+        if (in_array($action, $needCallbackQueryId) && !isset($data['callback_query_id']) && isset(self::$getUpdates['id'])) {
+            $data['callback_query_id'] = self::$getUpdates['id'];
+        }
+
+        // automate media
         if (in_array($action, $needMediaId) && isset($data['media']) && is_string($data['media'])){
             $fileId = FileId::fromBotAPI($data['media']);
             $data['media'] = json_encode(['type' => $fileId->getTypeName(), 'media' => $data['media']]);
@@ -631,18 +639,6 @@ class Bot
         $data['results'] = json_encode($results);
 
         return self::send('answerInlineQuery', $data);
-    }
-
-    public static function answerCallbackQuery($text, $options = [])
-    {
-        $options['text'] = $text;
-
-        if (!isset($options['callback_query_id'])) {
-            $get = self::$getUpdates;
-            $options['callback_query_id'] = $get['callback_query']['id'];
-        }
-
-        return self::send('answerCallbackQuery', $options);
     }
 
     private static function curlFile($path)
@@ -837,6 +833,7 @@ class Bot
             'editMessageCaption' => 'caption',
             'editMessageMedia' => 'media',
             'deleteMessage' => 'message_id',
+            'answerCallbackQuery' => 'text',
         ];
         if (isset($args[0])) {
             if (is_array($args[0])){
