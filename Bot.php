@@ -405,11 +405,13 @@ class Bot
         foreach ($events as $key => $event) {
             if (isset($get[$event])) {
                 self::$user = $get[$event]['from']['first_name'] ?? '';
-                self::$user .= $get[$event]['from']['last_name'] ?? '';
+                self::$user .= ' ' . $get[$event]['from']['last_name'] ?? '';
                 self::$from_id = $get[$event]['from']['id'];
                 self::$chat_id = $get[$event]['chat']['id'] ?? self::$admin_id;
                 self::$message_text = $get[$event]['text'] ?? '';
-                self::$message_id = $event == 'callback_query' ? $get[$event]['message']['message_id'] : $get[$event]['message_id'];
+                self::$message_id = $event == 'callback_query' 
+                ? $get[$event]['message']['message_id'] 
+                : $get[$event]['message_id'];
             }
         }
 
@@ -469,7 +471,7 @@ class Bot
                         $param = $get['message']['text'];
                         break;
                     default:
-                        $param = self::type();
+                        $param = $get;
                         break;
                 }
             }
@@ -497,7 +499,51 @@ class Bot
     public static function send(string $action, array $data)
     {
         $upload = false;
-        $actionUpload = ['sendPhoto', 'sendAudio', 'sendDocument', 'sendSticker', 'sendVideo', 'sendVoice'];
+        $actionUpload = [
+            'sendPhoto',
+            'sendAudio',
+            'sendDocument',
+            'sendSticker',
+            'sendVideo',
+            'sendVoice',
+        ];
+        
+        $needChatId = [
+            'sendMessage',
+            'forwardMessage',
+            'sendPhoto',
+            'sendAudio',
+            'sendDocument',
+            'sendSticker',
+            'sendVideo',
+            'sendVoice',
+            'sendLocation',
+            'sendVenue',
+            'sendContact',
+            'sendChatAction',
+            'editMessageText',
+            'editMessageCaption',
+            'editMessageReplyMarkup',
+            'sendGame',
+            'deleteMessage',
+            'editMessageMedia',
+        ];
+
+        $needMessageId = [
+            'editMessageText',
+            'deleteMessage',
+            'editMessageReplyMarkup',
+            'editMessageCaption',
+            'editMessageMedia',
+        ];
+
+        $needMediaId = [
+            'editMessageMedia',
+        ];
+
+        $needCallbackQueryId = [
+            'answerCallbackQuery',
+        ];
 
         if (in_array($action, $actionUpload)) {
             $field = str_replace('send', '', strtolower($action));
@@ -507,14 +553,6 @@ class Bot
                 $data[$field] = self::curlFile($data[$field]);
             }
         }
-
-        $needChatId = ['sendMessage', 'forwardMessage', 'sendPhoto', 'sendAudio', 'sendDocument', 'sendSticker', 'sendVideo', 'sendVoice', 'sendLocation', 'sendVenue', 'sendContact', 'sendChatAction', 'editMessageText', 'editMessageCaption', 'editMessageReplyMarkup', 'sendGame', 'deleteMessage', 'editMessageMedia'];
-
-        $needMessageId = ['editMessageText', 'deleteMessage', 'editMessageReplyMarkup', 'editMessageCaption', 'editMessageMedia'];
-
-        $needMediaId = ['editMessageMedia'];
-
-        $needCallbackQueryId = ['answerCallbackQuery'];
 
         if (isset(self::$getUpdates['callback_query'])) {
             self::$getUpdates = self::$getUpdates['callback_query'];
