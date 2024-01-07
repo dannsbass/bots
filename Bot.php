@@ -404,8 +404,7 @@ class Bot
 
         foreach ($events as $key => $event) {
             if (isset($get[$event])) {
-                self::$user = $get[$event]['from']['first_name'] ?? '';
-                self::$user .= ' ' . $get[$event]['from']['last_name'] ?? '';
+                self::$user = isset($get[$event]['from']['last_name']) ? $get[$event]['from']['first_name'] . ' ' . $get[$event]['from']['last_name'] : $get[$event]['from']['first_name'];
                 self::$from_id = $get[$event]['from']['id'];
                 self::$chat_id = $get[$event]['chat']['id'] ?? self::$admin_id;
                 self::$message_text = $get[$event]['text'] ?? '';
