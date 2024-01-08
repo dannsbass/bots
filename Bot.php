@@ -1,4 +1,5 @@
 <?php
+
 use danog\Decoder\FileId;
 
 class Bot
@@ -404,13 +405,17 @@ class Bot
 
         foreach ($events as $key => $event) {
             if (isset($get[$event])) {
-                self::$user = isset($get[$event]['from']['last_name']) ? $get[$event]['from']['first_name'] . ' ' . $get[$event]['from']['last_name'] : $get[$event]['from']['first_name'];
                 self::$from_id = $get[$event]['from']['id'];
                 self::$chat_id = $get[$event]['chat']['id'] ?? self::$admin_id;
                 self::$message_text = $get[$event]['text'] ?? '';
-                self::$message_id = $event == 'callback_query' 
-                ? $get[$event]['message']['message_id'] 
-                : $get[$event]['message_id'];
+
+                self::$user = isset($get[$event]['from']['last_name'])
+                    ? $get[$event]['from']['first_name'] . ' ' . $get[$event]['from']['last_name']
+                    : $get[$event]['from']['first_name'];
+
+                self::$message_id = $event == 'callback_query'
+                    ? $get[$event]['message']['message_id']
+                    : $get[$event]['message_id'];
             }
         }
 
@@ -506,7 +511,7 @@ class Bot
             'sendVideo',
             'sendVoice',
         ];
-        
+
         $needChatId = [
             'sendMessage',
             'forwardMessage',
@@ -563,19 +568,23 @@ class Bot
         }
 
         // automate media
-        if (in_array($action, $needMediaId) && isset($data['media']) && is_string($data['media'])){
+        if (in_array($action, $needMediaId) && isset($data['media']) && is_string($data['media'])) {
             $fileId = FileId::fromBotAPI($data['media']);
             $data['media'] = json_encode(['type' => $fileId->getTypeName(), 'media' => $data['media']]);
         }
 
         //automate message_id
         if (in_array($action, $needMessageId)) {
-            if (isset($data['message_id']) and is_string($data['message_id']) and isset(json_decode($data['message_id'])->result->message_id)) {
-                $data['message_id'] = (json_decode($data['message_id']))->result->message_id;
-            } elseif (isset(self::$getUpdates['message']['message_id'])){
-                $data['message_id'] = self::$getUpdates['message']['message_id'];
-            } elseif (isset(self::$getUpdates['message']['reply_to_message'])) {
-                $data['message_id'] = self::$getUpdates['message']['reply_to_message']['message_id'];
+            if (!isset($data['message_id'])) {
+                if (isset(self::$getUpdates['message']['message_id'])) {
+                    $data['message_id'] = self::$getUpdates['message']['message_id'];
+                } elseif (isset(self::$getUpdates['message']['reply_to_message'])) {
+                    $data['message_id'] = self::$getUpdates['message']['reply_to_message']['message_id'];
+                }
+            } else {
+                if (is_string($data['message_id']) and isset(json_decode($data['message_id'])->result->message_id)) {
+                    $data['message_id'] = (json_decode($data['message_id']))->result->message_id;
+                }
             }
         }
         //automate chat id
@@ -590,7 +599,7 @@ class Bot
                 $data['chat_id'] = self::$admin_id;
             }
         }
-        
+
         // automate reply message
         if (isset(self::$getUpdates['message']['message_id']) && !isset($data['reply_to_message_id'])) {
             $data['reply_to_message_id'] = self::$getUpdates['message']['message_id'];
@@ -873,7 +882,7 @@ class Bot
             'answerCallbackQuery' => 'text',
         ];
         if (isset($args[0])) {
-            if (is_array($args[0])){
+            if (is_array($args[0])) {
                 $param = $args[0];
                 if (isset($args[1]) && is_array($args[1])) {
                     $param = array_merge($param, $args[1]);
@@ -1088,11 +1097,12 @@ class Bot
         self::folderToZip($sourcePath, $z, strlen("$parentPath/"));
         $z->close();
     }
-    
+
     /**
      * For debugging via Bot message
      */
-    public static function debug($result = null){
+    public static function debug($result = null)
+    {
         if (is_null($result)) return Bot::sendMessage(json_encode(Bot::message(), JSON_PRETTY_PRINT));
         $object = json_decode($result);
         if (!$object || !$object->ok) return Bot::sendMessage(json_encode($result, JSON_PRETTY_PRINT));
